@@ -7,3 +7,5 @@ Switch homepage(首页)/manage(管理) page by ... button (right corner).
 Android端的文章列表／管理系统，使用H5的内置DB，无需服务器，使用...按钮切换首页／管理功能
 
 Download app-debug-sample.apk if you do not want to compile...
+
+PS: android超级不熟，为了能快速做出来，只好嵌入H5的方式来做，不然我的搞2，3天。。。
