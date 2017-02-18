@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">答记者问 / FAQ</string>
+    <string name="action_index">首页 / Home</string>
+    <string name="action_manage">管理 / Management</string>
+</resources>

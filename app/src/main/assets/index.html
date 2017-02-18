@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./zepto.min.js"></script>
+    <script type="text/javascript">
+        function initDatabase() {
+            try {
+                if (!window.openDatabase) {
+                    alert('该系统不支持打开数据库 / failed to open db');
+                } else {
+                    var shortName = 'qa50db';
+                    var version = '1.0';
+                    var displayName = 'QA50 Database';
+                    var maxSize = 1024000; // in bytes
+                    QADB = openDatabase(shortName, version, displayName, maxSize);
+                }
+            } catch(e) {
+                if (e == 2) {
+                    // Version mismatch.
+                    console.log("错误的版本号 / version error");
+                } else {
+                    console.log("未知错误 / error ："+ e +".");
+                }
+                return;
+            }
+        }
+
+
+        function errorHandler(transaction, error){
+            console.log('错误：'+error.message+' (Code '+error.code+')');
+            if (error.code==1){
+                // DB Table already exists
+            } else {
+                // Error is a human-readable string.
+                console.log('错误：'+error.message+' (Code '+error.code+')');
+                alert('错误：'+error.message+' (Code '+error.code+')');
+            }
+            return false;
+        }
+
+
+        function nullDataHandler(){
+            console.log("SQL成功执行");
+        }
+
+        function dataSelectHandler(transaction, results){
+            // Handle the results
+            for (var i=0; i<results.rows.length; i++) {
+                var row = results.rows.item(i);
+                $('#ul-contents').append('<li id="li-'+row['id']+'" rel="'+row['id']+'">'+(row['id'])+'. '+row['title']+'</li>');
+            }
+        }
+
+
+        $(document).ready(function() {
+            initDatabase();
+            $('#main').hide();
+            $('#form-content').hide();
+            QADB.transaction(
+                function (transaction) {
+                    transaction.executeSql("SELECT id,title FROM contents ORDER BY zindex DESC,id ASC;", [], dataSelectHandler, errorHandler);
+                }
+            );
+
+            $('#ul-contents > li').live( 'click', function(){
+                $('#panel').css('width','20%');
+                $('#main').show();
+                $('#ul-contents > li').removeClass('active');
+                $(this).addClass('active');
+                var cid = $(this).attr('rel');
+                $('#form-content').show();
+
+                QADB.transaction(
+                    function (tt) {
+                        tt.executeSql("SELECT id,title,content FROM contents WHERE id=?;", [cid], function( tt, result ){
+                            var row = result.rows[0];
+                            $('#title').html( row.title );
+                            var content = row.content;
+                            content = content.replace(/[\r\n]/g,"<br/>");
+                            content = content.replace(/\ /g,"&nbsp;");
+                            $('#content').html( content );
+                        }, errorHandler);
+                    }
+                );
+            });
+        });
+    </script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        #wrap {
+            display: flex;
+            height: 100%;
+        }
+
+        #ul-contents > li{
+            word-break: break-all;
+            border-radius: 5px;
+            background-color: white;
+            padding: 6px;
+            margin-bottom: 5px;
+            font-size: 1.2em;
+        }
+
+        #ul-contents > li.active{
+            font-weight:bold;
+        }
+
+        #ul-contents{
+            list-style: none;
+            margin: 5px;
+            padding: 0px;
+        }
+
+        #panel{
+            width:100%; height:100%;
+            background-color: aliceblue;
+        }
+
+        #main{
+            width:80%; height:100%;
+            padding: 20px;
+        }
+
+        #title{
+            font-weight: bold;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        #content{
+            font-size: 1.4em;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body style="margin:0">
+    <div id="wrap">
+        <div id="panel" style="overflow-y:auto">
+            <ul id="ul-contents"></ul>
+        </div>
+        <div id="main">
+            <div id="form-content">
+                <div id="title"></div>
+                <hr />
+                <div id="content"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
